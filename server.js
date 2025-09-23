@@ -25,13 +25,25 @@ const events = [];
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// 데이터 수집 엔드포인트
+// 필수 CORS 프리플라이트 처리
+app.options('/collect', (req, res) => {
+  const origin = req.get('origin');
+  if (ALLOWED.has(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Vary', 'Origin');
+  }
+  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return res.sendStatus(204);
+});
+
 app.post('/collect', (req, res) => {
-const data = req.body || {};
-data.receivedAt = Date.now();
-events.push(data);
-console.log('📥 collected:', data);
-res.json({ ok: true });
+  const origin = req.get('origin');
+  if (ALLOWED.has(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Vary', 'Origin');
+  }
+  return res.status(200).json({ ok: true });
 });
 
 

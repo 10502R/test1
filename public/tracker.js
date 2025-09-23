@@ -5,7 +5,7 @@
 
 (function() {
 // 배포 후에는 이 URL을 배포된 도메인으로 바꿔주세요.
-const TRACKING_URL = 'https://test1-edoc.onrender.com/'
+const TRACKING_URL = 'https://test1-edoc.onrender.com/collect';
     //(function() {
     // 자동으로 현재 스크립트가 로드된 호스트의 /collect로 전송하도록 기본 설정
     //try {

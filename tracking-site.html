@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>테스트용 웹사이트</title>
+</head>
+<body>
+    <h1>새로운 웹사이트입니다.</h1>
+    <p>이 페이지뷰 이벤트가 분석 서버에 기록될 것입니다.</p>
+    <button id="clickMe">이벤트 보내기</button>
+
+    <script>
+        // 프록시 서버 URL
+        const proxyServerUrl = 'http://localhost:3001/api/analytics';
+
+        // 1. 페이지뷰 이벤트 전송
+        function trackPageView() {
+            const eventData = {
+                eventName: 'pageview',
+                pageUrl: window.location.href,
+                timestamp: new Date().toISOString()
+            };
+
+            fetch(proxyServerUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => response.json())
+            .then(data => console.log('페이지뷰 전송 성공:', data))
+            .catch(error => console.error('페이지뷰 전송 실패:', error));
+        }
+
+        // 2. 버튼 클릭 이벤트 전송
+        document.getElementById('clickMe').addEventListener('click', () => {
+            const eventData = {
+                eventName: 'button_click',
+                pageUrl: window.location.href,
+                elementId: 'clickMe',
+                timestamp: new Date().toISOString()
+            };
+
+            fetch(proxyServerUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => response.json())
+            .then(data => console.log('버튼 클릭 이벤트 전송 성공:', data))
+            .catch(error => console.error('버튼 클릭 이벤트 전송 실패:', error));
+        });
+
+        // 페이지가 로드될 때 페이지뷰 이벤트 전송
+        window.onload = trackPageView;
+    </script>
+</body>
+</html>

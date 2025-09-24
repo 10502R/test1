@@ -1,3 +1,7 @@
+# 추가
+node_modules
+my-proxy-server/node_modules
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

@@ -5,13 +5,15 @@ services:
     plan: free
     rootDir: my-proxy-server
     buildCommand: |
-      npm cache clean --force
       npm ci
-    startCommand: npm run start:server1
+      ls -la node_modules/ipaddr.js || (echo "ipaddr.js missing" && exit 1)
+    startCommand: node server1.js
     healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NPM_CONFIG_FUND
+        value: "false"
 
   - type: web
     name: analytics-server
@@ -19,10 +21,12 @@ services:
     plan: free
     rootDir: my-proxy-server
     buildCommand: |
-      npm cache clean --force
       npm ci
-    startCommand: npm run start:analytics
+      ls -la node_modules/ipaddr.js || (echo "ipaddr.js missing" && exit 1)
+    startCommand: node analytics_server.js
     healthCheckPath: /healthz
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NPM_CONFIG_FUND
+        value: "false"

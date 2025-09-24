@@ -9,7 +9,7 @@ app.use(express.json());
 
 // CSP 정책 완화(개발용)
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "connect-src 'self' http://localhost:3001;");
+  res.setHeader("Content-Security-Policy", "connect-src 'self' https://proxy-server-g0u8.onrender.com/;");
   next();
 });
 

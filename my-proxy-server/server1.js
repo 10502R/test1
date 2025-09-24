@@ -7,7 +7,7 @@ const app = express();
 
 // ---- Config ----
 const PORT = process.env.PORT || 3001;
-const ANALYTICS_ORIGIN = process.env.ANALYTICS_URL || 'http://localhost:3002';
+const ANALYTICS_ORIGIN = process.env.ANALYTICS_URL || 'https://analytics-7ld0.onrender.com';
 
 // ---- Middleware ----
 app.use(cors());               // 필요 시 origin 화이트리스트로 제한

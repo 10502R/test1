@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: server1
+    env: node
+    plan: free
+    rootDir: my-proxy-server
+    buildCommand: |
+      npm cache clean --force
+      npm ci
+    startCommand: npm run start:server1
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: analytics-server
+    env: node
+    plan: free
+    rootDir: my-proxy-server
+    buildCommand: |
+      npm cache clean --force
+      npm ci
+    startCommand: npm run start:analytics
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production

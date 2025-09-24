@@ -1,59 +1,71 @@
+// server1.js (Render 배포용 / Node 20+ / CommonJS)
+
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3001;
 
-// CORS 정책 허용 (클라이언트의 요청을 받기 위함)
-app.use(cors());
+// ---- Config ----
+const PORT = process.env.PORT || 3001;
+const ANALYTICS_ORIGIN = process.env.ANALYTICS_URL || 'http://localhost:3002';
+
+// ---- Middleware ----
+app.use(cors());               // 필요 시 origin 화이트리스트로 제한
 app.use(express.json());
 
-// CSP 헤더 설정 (개발용)
+// CSP (개발용: 프록시 대상만 허용)
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "connect-src 'self' http://localhost:3002;");
+  res.setHeader(
+    'Content-Security-Policy',
+    `connect-src 'self' ${ANALYTICS_ORIGIN};`
+  );
   next();
 });
 
-// 기본 라우트, 404 방지용
-app.get('/', (req, res) => {
-  res.send('Analytics Server is running!');
+// ---- Health ----
+app.get('/healthz', (_, res) => res.send('ok'));
+
+// ---- Root ----
+app.get('/', (_, res) => {
+  res.send('Analytics Proxy Server is running!');
 });
 
-// 1. 클라이언트로부터 이벤트 데이터를 받는 POST 엔드포인트
+// ---- Proxy: client → (this server) → analytics server ----
+
+// 1) 수집 프록시 (POST)
 app.post('/api/analytics', async (req, res) => {
-  const analyticsServerUrl = 'http://localhost:3002/track';
-  const data = req.body; // 클라이언트가 보낸 데이터
-
-  console.log('프록시 서버로 요청이 도착했습니다:', data);
-
   try {
-    // 프록시 서버가 실제 분석 서버에 요청을 보냄 (CORS 문제 없음)
-    const response = await axios.post(analyticsServerUrl, data);
-    console.log('분석 서버 응답:', response.data);
+    const r = await fetch(`${ANALYTICS_ORIGIN}/track`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
 
-    // 분석 서버의 응답을 클라이언트에 전달
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    console.error('분석 서버 요청 실패:', error.message);
-    res.status(500).send({ message: '내부 서버 오류' });
+    const ct = r.headers.get('content-type') || 'text/plain';
+    const body = ct.includes('application/json') ? await r.json() : await r.text();
+
+    res.status(r.status).type(ct).send(body);
+  } catch (err) {
+    console.error('POST /api/analytics proxy error:', err);
+    res.status(500).json({ message: 'Internal proxy error' });
   }
 });
 
-// 2. 대시보드가 데이터를 요청하는 GET 엔드포인트 (새로 추가)
-app.get('/api/analytics', async (req, res) => {
+// 2) 대시보드 조회 프록시 (GET)
+app.get('/api/analytics', async (_, res) => {
   try {
-    const analyticsServerUrl = 'http://localhost:3002/api/analytics';
-    // 프록시 서버가 분석 서버에 GET 요청을 보내 데이터를 받아옵니다.
-    const response = await axios.get(analyticsServerUrl);
-    // 분석 서버의 응답을 대시보드에 전달합니다.
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    console.error('분석 서버 데이터 요청 실패:', error.message);
-    res.status(500).send({ message: '데이터를 가져오는 데 실패했습니다.' });
+    const r = await fetch(`${ANALYTICS_ORIGIN}/api/analytics`, { method: 'GET' });
+    const ct = r.headers.get('content-type') || 'application/json';
+    const body = ct.includes('application/json') ? await r.json() : await r.text();
+
+    res.status(r.status).type(ct).send(body);
+  } catch (err) {
+    console.error('GET /api/analytics proxy error:', err);
+    res.status(500).json({ message: 'Failed to fetch analytics data' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
+// ---- Start ----
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Proxy server listening on ${PORT} → target ${ANALYTICS_ORIGIN}`);
 });

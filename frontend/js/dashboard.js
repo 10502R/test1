@@ -22,7 +22,7 @@ async function fetchAnalyticsData() {
   }
 }
 
-// HTML 요소를 업데이트하는 함수
+// HTML 요소를 업데이트하는 함수d
 function updateDashboardUI(data) {
   // 총 페이지뷰 수를 계산하여 HTML에 표시
   const pageviewCount = data.filter(event => event.eventName === 'pageview').length;

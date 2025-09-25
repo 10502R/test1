@@ -1,26 +1,24 @@
-// 이 함수는 분석 서버로부터 데이터를 가져와 UI를 업데이트합니다.
+// 프록시 서버의 API 엔드포인트
+const proxyServerUrl = 'https://proxy-server-g0u8.onrender.com/api/analytics';
+
+// 데이터 받아와서 페이지뷰 수 표시
 async function fetchAnalyticsData() {
   try {
-    // 분석 서버의 GET 엔드포인트로 요청을 보냅니다.
-    const response = await fetch('http://localhost:3001/api/analytics');
-    
-    // 응답이 성공적이지 않으면 오류를 던집니다.
-    if (!response.ok) {
-      throw new Error('데이터를 가져오는 데 실패했습니다.');
-    }
-    
-    // JSON 형태로 응답을 받습니다.
-    const data = await response.json(); 
-    
-    console.log('대시보드로 수신된 데이터:', data);
-
-    // 수신된 데이터로 UI를 업데이트하는 함수를 호출합니다.
-    updateDashboardUI(data);
-    
-  } catch (error) {
-    console.error('분석 데이터를 가져오는 중 오류 발생:', error);
+    const response = await fetch(proxyServerUrl);
+    if (!response.ok) throw new Error('네트워크 오류');
+    const data = await response.json();
+    // 페이지뷰 이벤트만 필터링
+    const pageviewCount = data.filter(event => event.eventName === 'pageview').length;
+    // HTML에 반영
+    const countElem = document.getElementById('total-pageviews-count');
+    if (countElem) countElem.textContent = pageviewCount;
+  } catch (err) {
+    console.error('페이지뷰 데이터 가져오기 실패:', err);
   }
 }
+
+// 페이지 로드 시 실행
+window.addEventListener('DOMContentLoaded', fetchAnalyticsData);
 
 // HTML 요소를 업데이트하는 함수d
 function updateDashboardUI(data) {

@@ -10,7 +10,13 @@ const PORT = process.env.PORT || 3001;
 const ANALYTICS_ORIGIN = process.env.ANALYTICS_URL || 'https://analytics-7ld0.onrender.com';
 
 // ---- Middleware ----
-app.use(cors());               // 필요 시 origin 화이트리스트로 제한
+app.use(cors({
+  origin: [
+    "https://lseungju.tistory.com",
+    "https://security-record.tistory.com"
+  ],
+  credentials: true // 응답 헤더에 Access-Control-Allow-Credentials 추가
+}));
 app.use(express.json());
 
 // CSP (개발용: 프록시 대상만 허용)
